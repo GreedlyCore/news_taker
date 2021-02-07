@@ -1,5 +1,5 @@
 import telebot
-from Include.sql import article_db
+from sql import article_db
 from keyboards import *
 from bs4 import BeautifulSoup
 import requests as rq
