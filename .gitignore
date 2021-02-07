@@ -103,6 +103,7 @@ __pypackages__/
 
 #My staff
 const.py
+stats.txt
 
 # Celery stuff
 celerybeat-schedule

@@ -14,8 +14,7 @@ from time import time
 import mysql.connector as sql
 from sql import *
 
-# ----------------------------------------------------------------------------------------------------------------------#
-# themes = {"name": [], "rating": []}
+
 header = Headers(
     browser="chrome",  # Generate only Chrome UA
     os="win",  # Generate ony Windows platform
@@ -23,19 +22,6 @@ header = Headers(
 )
 
 
-# ----------------------------------------------------------------------------------------------------------------------#
-def theme_most_liked(count):
-    final = []
-    deleted = []
-    # list(set(themes['rating']) - set(deleted))
-    for i in range(count):
-        index = themes['rating'].index(max(list(set(themes['rating']) - set(deleted))))
-        final.append(themes['name'][index])
-        deleted.append(themes['rating'][index])
-    return final
-
-
-# -------------------------------------------------------BOT------------------------------------------------------------#
 
 bot = telebot.TeleBot(TOKEN)
 
@@ -46,12 +32,12 @@ bot = telebot.TeleBot(TOKEN)
 
 @bot.message_handler(commands=['start'])
 def main(message):
-    sent = bot.send_message(message.chat.id, text['greet'], reply_markup=keyboard.main())
-
     # register for new users
     if message.chat.id not in user_db.get_users_id():
         user_db.create(message.chat.id)
-
+        bot.send_message(message.chat.id, text['greet_for_beginner'], reply_markup=keyboard.main())
+    else:
+        sent = bot.send_message(message.chat.id, choice(text['greet']), reply_markup=keyboard.main())
     bot.register_next_step_handler(sent, menu_selector)
 
 
