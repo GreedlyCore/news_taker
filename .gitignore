@@ -104,6 +104,7 @@ __pypackages__/
 #My staff
 const.py
 stats.txt
+logs
 
 # Celery stuff
 celerybeat-schedule
