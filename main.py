@@ -21,25 +21,17 @@ header = Headers(
     headers=True  # generate misc headers
 )
 
-
-
 bot = telebot.TeleBot(TOKEN)
-
-
-# # article_db.update_content()
-# user_db.create_views()
-
 
 @bot.message_handler(commands=['start'])
 def main(message):
     # register for new users
-    if message.chat.id not in user_db.get_users_id():
-        user_db.create(message.chat.id)
+    if message.json['from']['id'] not in user_db.get_users_id():
+        user_db.create(message.json['from']['id'])
         bot.send_message(message.chat.id, text['greet_for_beginner'], reply_markup=keyboard.main())
     else:
         sent = bot.send_message(message.chat.id, choice(text['greet']), reply_markup=keyboard.main())
     bot.register_next_step_handler(sent, menu_selector)
-
 
 # многоразовый отклик на кнопки в клаве
 @bot.callback_query_handler(func=lambda call: True)
