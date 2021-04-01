@@ -2,3 +2,4 @@
 telegram bot for who want to know more
 
 requires mySQL
+requires log folder
