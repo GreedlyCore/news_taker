@@ -10,7 +10,7 @@ from const import *
 from text import text
 from os import getcwd
 from datetime import datetime
-from time import time
+#from time import time
 import mysql.connector as sql
 from sql import *
 
@@ -25,6 +25,10 @@ bot = telebot.TeleBot(TOKEN)
 
 @bot.message_handler(commands=['start'])
 def main(message):
+    new_day=False
+    if new_day:
+        reboot_count_sended_today()
+
     # register for new users
     if message.json['from']['id'] not in user_db.get_users_id():
         user_db.create(message.json['from']['id'])
@@ -33,9 +37,11 @@ def main(message):
         sent = bot.send_message(message.chat.id, choice(text['greet']), reply_markup=keyboard.main())
     bot.register_next_step_handler(sent, menu_selector)
 
-# многоразовый отклик на кнопки в клаве
+#Inline keyboard callback
 @bot.callback_query_handler(func=lambda call: True)
 def callback_query(call):
+
+
     bot.answer_callback_query(callback_query_id=call.id, text=choice(text['rated_callback']))
 
     mark = float(call.data.split()[0])
@@ -64,14 +70,15 @@ def settings(message):
         sent = bot.send_message(message.chat.id, text['reboot'], reply_markup=keyboard.main())
         bot.register_next_step_handler(sent, menu_selector)
     elif message.text == 'Статистика':
-        with open("stats.txt", 'r') as f:
-            if f.read().splitlines()[0] != datetime.now().strftime("%d-%m-%Y"):
-                reboot_count_sended_today()
-        stat_text = f'Просмотрено статей за сегодня: {get_count_sended_today()}\n' \
-                    f'😎Всего поставлено Положительно: {get_count_rated()[0]}\n' \
-                    f'😐Всего поставлено Нейтрально: {get_count_rated()[1]}\n' \
-                    f'😢Всего поставлено Отрицательно: {get_count_rated()[2]}\n' \
-                    f'Просмотрено всего: {get_count_sended_total()}\n' \
+
+        ID = message.json['from']['id']
+        stat_text = f'Просмотрено статей за сегодня: {user_db.get_count_sended_today(ID)}\n\n' \
+                    f'😎Всего поставлено Положительно: {user_db.get_count_rated(ID)["count_likes"]}\n\n' \
+                    f'😐Всего поставлено Нейтрально: {user_db.get_count_rated(ID)["count_neutral"]}\n\n' \
+                    f'😢Всего поставлено Отрицательно: {user_db.get_count_rated(ID)["count_dislikes"]}\n\n' \
+                    f'Просмотрено всего: {user_db.get_count_sended_total(ID)}\n\n' \
+                    f'Любимая тема: {user_db.get_favourite_theme(ID)}\n\n' \
+                    f'Нелюбимая тема: {user_db.get_negative_theme(ID)}\n\n\n' \
                     f'🥅Хотите поставить цель?\n'
         sent = bot.send_message(message.chat.id, stat_text, reply_markup=keyboard.settings())
         bot.register_next_step_handler(sent, settings)
@@ -122,8 +129,8 @@ def menu_selector(message):
         user_db.reboot_related_sended(id)
         calibration_articles = article_db.calibration(id)
         user_db.add_related_sended(message.chat.id, [i[0] for i in calibration_articles])
-        for elem in calibration_articles:
-            bot.send_message(id, article_db.decorate_article(elem[0]), reply_markup=keyboard.rate(elem[1], elem[0]))
+        for article in calibration_articles:
+            bot.send_message(id, article_db.decorate_article(article[0]), reply_markup=keyboard.rate(article[1], article[0]))
 
         bot.register_next_step_handler(sent, menu_selector)
 
@@ -133,6 +140,11 @@ def menu_selector(message):
     elif message.text == '⚙Настройки':
         sent = bot.send_message(message.chat.id, text['settings'], reply_markup=keyboard.settings())
         bot.register_next_step_handler(sent, settings)
+
+    elif message.text == 'Источники':
+        sent = bot.send_message(message.chat.id, text['sources'], reply_markup=keyboard.main())
+        bot.register_next_step_handler(sent, menu_selector)
+
     else:
         sent = bot.send_message(message.chat.id, text['wrong'], reply_markup=keyboard.main())
         bot.register_next_step_handler(sent, menu_selector)

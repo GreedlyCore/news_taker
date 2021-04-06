@@ -148,3 +148,8 @@ dmypy.json
 .prof
 
 # End of https://www.toptal.com/developers/gitignore/api/python
+*.pyc
+*.pyc
+*.pyc
+*.pyc
+hidden/const — копия.py

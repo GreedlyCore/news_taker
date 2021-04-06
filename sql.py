@@ -7,9 +7,6 @@ from const import *
 from helper import *
 #import pandas as pd
 
-
-
-
 class user_db:
     mydb = DATABASE
 
@@ -20,6 +17,7 @@ class user_db:
         cursor.execute(
             f"INSERT INTO users (id_telegram) VALUES ({id})")
         user_db.mydb.commit()
+
         # ADDDING to views table---------------------------------------------------------------------------------------#
         cursor = user_db.mydb.cursor()
         cursor.execute(
@@ -44,7 +42,7 @@ class user_db:
         mycursor.execute(request, val)
 
         # # turn into beautiful dict
-        return dict(zip(val,[i[0] for i in mycursor.fetchall()]))
+        return dict(zip(val,mycursor.fetchone()))
 
     @staticmethod
     def rate(id, theme, mark):
@@ -178,7 +176,45 @@ class user_db:
         mycursor.execute("TRUNCATE TABLE users_views")
         user_db.mydb.commit()
 
+    @staticmethod
+    def get_count_sended_today(id):
+        cursor = user_db.mydb.cursor()
+        request = cursor.execute(f"SELECT count_viewed_today FROM users where id_telegram={id}")
+        return cursor.fetchone()[0]
 
+    @staticmethod
+    def get_count_sended_total(id):
+        cursor = user_db.mydb.cursor()
+        request = cursor.execute(f"SELECT count_viewed_total FROM users where id_telegram={id}")
+        return cursor.fetchone()[0]
+
+    @staticmethod
+    def get_count_rated(id):
+        cursor = user_db.mydb.cursor()
+        request = cursor.execute(f"SELECT count_likes, count_dislikes, count_neutral FROM users WHERE id_telegram={id}")
+        val = ("count_likes", "count_dislikes", "count_neutral")
+        cursor.execute(request)
+        return dict(zip(val, cursor.fetchone()))
+
+    @staticmethod
+    def get_favourite_theme(id):
+        cursor = user_db.mydb.cursor()
+        request = cursor.execute(f"SELECT education_learning, health_medicine, business_industry, science_society, fossils_ruins,earth_climate, plants_animals, computers_math, space_time, matter_energy, living_well, mind_brain FROM users WHERE id_telegram={id}")
+        val = ("education_learning", "health_medicine", "business_industry", "science_society", "fossils_ruins","earth_climate", "plants_animals", "computers_math", "space_time", "matter_energy", "living_well", "mind_brain")
+        cursor.execute(request, val)
+
+        dct = dict(zip(val, cursor.fetchone()))
+        return max(dct, key=dct.get)
+
+    @staticmethod
+    def get_negative_theme(id):
+        cursor = user_db.mydb.cursor()
+        request = cursor.execute(f"SELECT education_learning, health_medicine, business_industry, science_society, fossils_ruins,earth_climate, plants_animals, computers_math, space_time, matter_energy, living_well, mind_brain FROM users WHERE id_telegram={id}")
+        val = ("education_learning", "health_medicine", "business_industry", "science_society", "fossils_ruins","earth_climate", "plants_animals", "computers_math", "space_time", "matter_energy", "living_well", "mind_brain")
+        cursor.execute(request, val)
+
+        dct = dict(zip(val, cursor.fetchone()))
+        return min(dct, key=dct.get)
 
 class article_db:
     mydb = DATABASE
@@ -236,7 +272,13 @@ class article_db:
 
 
         telegraph_url = '😢Недоступна для этой статьи' if obj[5] == None  else obj[5]
-        return f"📬{obj[0]}\n\n🗓{obj[1]}\n🏫{obj[2]}\n\n💻Версия  для удобного чтения c компьютера:\n{telegraph_url}\n\n▪Description:\n{obj[3]}\n\n⭐Rating: {obj[6]}\n\n{obj[4]}",
+        return f"📬 {obj[0]}\n\n" \
+               f"🗓 {obj[1]}\n" \
+               f"🏫 {obj[2]}\n\n💻Версия  для удобного чтения c компьютера:\n" \
+               f"{telegraph_url}\n\n" \
+               f"▪ Аннотация:\n{obj[3]}\n\n⭐" \
+               f"Рейтинг: {obj[6]}\n\n{obj[4]}",
+
     #add rating to current article
     @staticmethod
     def rate(id, mark):
